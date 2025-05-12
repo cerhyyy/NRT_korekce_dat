@@ -1,0 +1,115 @@
+services:
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "19092:19092"
+    environment:
+      # Enable KRaft mode
+      KAFKA_KRAFT_MODE: "true"
+      # Set the node ID
+      KAFKA_NODE_ID: 1
+      # Configure as both controller and broker
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      # Set controller listener
+      KAFKA_CONTROLLER_LISTENERS: "CONTROLLER://0.0.0.0:9093"
+      # Advertise controller listener
+      KAFKA_CONTROLLER_ADVERTISED_LISTENERS: "CONTROLLER://kafka:9093"
+      # Specify which listener to use for controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      # Add the controller listener to the listener list
+      KAFKA_LISTENERS: "CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092"
+      # Advertised listeners for clients
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:9092,EXTERNAL://host.docker.internal:19092"
+      # Define listener security protocols
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      # Set cluster ID
+      KAFKA_CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      # Initial Controller Quorum Voters
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      # Topic partition settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+    volumes:
+      - kafka-data:/opt/kafka/data
+    networks:
+      - kafka-network
+
+
+  #model-api:
+  #  build: ./model-service   # Compose will run the Dockerfile here :contentReference[oaicite:2]{index=2}
+  #  image: deltatsvc:local
+  #  ports:
+  #    - "8000:8000"          # host → container
+  #  healthcheck:             # wait until the API is live :contentReference[oaicite:3]{index=3}
+  #    test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+  #    interval: 10s
+#      retries: 5
+#    restart: unless-stopped
+
+
+
+  #postgres:
+  #  image: postgres:12
+  #  container_name: postgres
+  #  ports:
+  #    - "5432:5432"  # Exposes PostgreSQL on port 5432
+  #  environment:
+  #    # Environment variables to initialize the database.
+  #    POSTGRES_USER: myuser        # Default user name
+  #    POSTGRES_PASSWORD: mypassword  # Default password
+  #    POSTGRES_DB: mydb              # Default database name
+  #
+  #  # Optionally, you can define a volume to persist data:
+  #  volumes:
+  #   - pgdata:/var/lib/postgresql/data
+  #  networks:
+  #    - kafka-network
+
+
+
+
+  #grafana:
+  #  image: grafana/grafana:latest
+  #  container_name: grafana
+  #  ports:
+  #    - "3000:3000"  # Exposes Grafana on port 3000
+  #  environment:
+  #    GF_SECURITY_ADMIN_USER: admin
+  #    GF_SECURITY_ADMIN_PASSWORD: admin
+  #  depends_on:
+  #    - postgres  # Ensure PostgreSQL is available (for Grafana's data source, if needed)
+  #  volumes:
+  #    - grafana-storage:/var/lib/grafana
+  #  networks:
+  #    - kafka-network
+
+
+  #subscriber:
+  #  build: ./custom_postgres_connector
+  #  depends_on:
+  #    - kafka
+  #    - postgres
+  #  environment:
+  #    KAFKA_BROKER: kafka:9092
+  #    DB_HOST: postgres
+  #    DB_PORT: 5432
+  #    DB_NAME: mydb
+  #    DB_USER: myuser
+  #    DB_PASSWORD: mypassword
+  #  networks:
+  #    - kafka-network
+
+
+
+volumes:
+  pgdata:
+  grafana-storage:
+  kafka-data:
+
+
+networks:
+  kafka-network:
+    driver: bridge

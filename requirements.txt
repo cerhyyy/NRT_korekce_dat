@@ -1,0 +1,10 @@
+kafka-python
+apache-flink==1.20
+pyflink
+numpy
+python-dotenv
+pandas
+six
+xgboost
+joblib
+scikit-learn
